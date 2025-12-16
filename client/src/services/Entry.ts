@@ -3,15 +3,21 @@ import { api } from "./api";
 export interface Entry {
   _id: string;
   value?: string;
-  entryType?: "income" | "expense";
+  entryType?: "income" | "expense" | "transfer";
+  // READ (from backend)
   account?: string; 
+  fromAccount?: string;
+  toAccount?: string;  
+  baseAccount?: string;
+  // WRITE (to backend)
   accountId?: string;
+  fromAccountId?: string;
+  toAccountId?: string;
+
   completed: boolean;
   dueDate?: string;
   notes?: string;
   category?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 // All API calls include the token

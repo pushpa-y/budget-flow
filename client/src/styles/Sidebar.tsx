@@ -13,8 +13,6 @@ export const Aside = styled(motion.aside)<{ $collapsed: boolean }>`
   flex-direction: column;
   gap: 18px;
   z-index: 40;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(8px);
   box-sizing: border-box;
 `;
 
@@ -66,106 +64,8 @@ export const NavItem = styled(NavLink)<{ $collapsed: boolean }>`
     font-size: 14px;
   }
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.03);
-  }
-
   &.active {
-    background: rgba(255, 255, 255, 0.06);
     font-weight: 600;
-  }
-`;
-
-/* Accounts section */
-
-export const AccountsSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
-`;
-
-export const AccountsHeader = styled.button<{ $collapsed: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  height: 44px;
-  box-sizing: border-box;
-
-  .title {
-    white-space: nowrap;
-    overflow: hidden;
-    width: ${(p) => (p.$collapsed ? "0px" : "160px")};
-    opacity: ${(p) => (p.$collapsed ? 0 : 1)};
-    transform: ${(p) => (p.$collapsed ? "translateX(-6px)" : "translateX(0)")};
-    transition: opacity 0.22s ease, width 0.22s ease, transform 0.22s ease;
-    font-weight: 600;
-    font-size: 13px;
-  }
-
-  svg {
-    transition: transform 0.2s ease;
-  }
-`;
-
-export const AccountsList = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-left: 4px;
-  margin-right: 4px;
-`;
-
-export const AccountItem = styled.div<{
-  $active: boolean;
-  $collapsed: boolean;
-}>`
-  display: flex;
-  align-items: center;
-  justify-content: ${(p) => (p.$collapsed ? "center" : "space-between")};
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  height: 44px;
-  box-sizing: border-box;
-  cursor: pointer;
-  background: ${(p) => (p.$active ? "rgba(99,102,241,0.12)" : "transparent")};
-  transition: background 0.18s ease;
-
-  .left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .name {
-    white-space: nowrap;
-    overflow: hidden;
-    width: ${(p) => (p.$collapsed ? "0px" : "140px")};
-    opacity: ${(p) => (p.$collapsed ? 0 : 1)};
-    transform: ${(p) => (p.$collapsed ? "translateX(-6px)" : "translateX(0)")};
-    transition: opacity 0.18s ease, width 0.18s ease, transform 0.18s ease;
-    font-size: 13px;
-  }
-
-  .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 999px;
-    flex-shrink: 0;
-  }
-
-  .balance {
-    font-weight: 600;
-    font-size: 13px;
-    opacity: ${(p) => (p.$collapsed ? 0 : 1)};
-    transition: opacity 0.18s ease;
   }
 `;
 
@@ -183,7 +83,6 @@ export const FooterRow = styled.div<{ $collapsed: boolean }>`
     gap: 8px;
     padding: 8px 12px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.03);
     cursor: pointer;
     height: 44px;
     box-sizing: border-box;

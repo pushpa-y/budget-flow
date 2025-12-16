@@ -15,8 +15,8 @@ import FiltersBar from "../components/FiltersBar";
 import EntryList from "../components/entries/EntryList";
 import EntryFormCreate from "../components/forms/EntryFormCreate";
 import EntryFormEdit from "../components/forms/EntryFormEdit";
-import Layout from "../components/Layout";
 import AccountsContainer from "../components/accounts/AccountsContainer";
+import ChartsSection from "../components/charts/ChartsSection";
 
 //styles
 import { FloatingAddButton } from "../styles/Dashboard";
@@ -34,24 +34,33 @@ const Dashboard = () => {
     moveBalanceBetweenAccounts,
   } = useAccounts();
 
-  // Entry states
+  // --- State ---
   const [entries, setEntries] = useState<Entry[]>([]);
   const [value, setValue] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [category, setCategory] = useState("");
-  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
-
-  const [editValue, setEditValue] = useState("");
-  const [editEntryType, setEditEntryType] = useState<"income" | "expense">(
+  const [entryType, setEntryType] = useState<"income" | "expense" | "transfer">(
     "expense"
   );
-  const [entryType, setEntryType] = useState<"income" | "expense">("expense");
+  const [editEntryType, setEditEntryType] = useState<"income" | "expense" | "transfer">("expense");
+
+  const [dueDate, setDueDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [category, setCategory] = useState("");
+  const [notes, setNotes] = useState("");
+  const [fromAccount, setFromAccount] = useState("");
+  const [toAccount, setToAccount] = useState("");
+
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [editValue, setEditValue] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
   const [editCategory, setEditCategory] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [editAccountId, setEditAccountId] = useState<string | null>(null);
+  const [editFromAccountId, setEditFromAccountId] = useState<string>("");
+  const [editToAccountId, setEditToAccountId] = useState<string>("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddEntryModalOpen, setIsAddEntryModalOpen] = useState(false);
-  const [editAccountId, setEditAccountId] = useState<string | null>(null);
 
   const [sortBy, setSortBy] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -59,9 +68,7 @@ const Dashboard = () => {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
 
-  const [notes, setNotes] = useState(""); // for Add Entry
-  const [editNotes, setEditNotes] = useState(""); // for Edit Entry
-
+  // --- Fetch entries ---
   const fetchEntries = async (p = 1) => {
     if (!auth?.token) return;
     try {
@@ -83,115 +90,162 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchEntries(page); /* eslint-disable-next-line */
+    fetchEntries(page);
   }, [auth?.token, sortBy, page, categoryFilter, activeAccount]);
 
-  // --- Entry CRUD ---
+  // --- CREATE ---
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth?.token) return;
 
-    // accountId could be undefined
-    if (!activeAccount) {
-      alert("Please select an account");
-      return;
-    }
-
     try {
-      await createEntry(auth.token, {
-        value,
-        entryType,
-        dueDate,
-        notes,
-        category,
-        accountId: activeAccount, // safe now
-      });
+      if (entryType === "transfer") {
+        if (!fromAccount || !toAccount) {
+          alert("Please select both From and To accounts");
+          return;
+        }
+       
+        await createEntry(auth.token, {
+          entryType: "transfer",
+          value: value,
+          fromAccountId: fromAccount,
+          toAccountId: toAccount,
+          notes,
+          ...(dueDate && { dueDate }),
+        });
 
-      applyBalanceChange(
-        activeAccount,
-        entryType === "income" ? Number(value) : -Number(value)
-      );
+        moveBalanceBetweenAccounts(fromAccount, toAccount, Number(value));
+      } else {
+        if (!activeAccount) {
+          alert("Please select an account");
+          return;
+        }
+        if (!category) {
+          alert("Please select a category");
+          return;
+        }
 
+        await createEntry(auth.token, {
+          value: value,
+          entryType,
+          accountId: activeAccount,
+          notes,
+          category,
+          ...(dueDate && { dueDate }),
+        });
+
+        applyBalanceChange(
+          activeAccount,
+          entryType === "income" ? Number(value) : -Number(value)
+        );
+      }
+
+      // Reset form
       setValue("");
       setEntryType("expense");
+      setFromAccount("");
+      setToAccount("");
       setDueDate("");
       setNotes("");
       setCategory("");
       fetchEntries(1);
+      setIsAddEntryModalOpen(false);
     } catch (err) {
       console.error(err);
+      alert("Something went wrong while creating the entry.");
     }
   };
 
+  // --- DELETE ---
   const handleDelete = async (id: string) => {
     if (!auth?.token) return;
 
-    const entryToDelete = entries.find((t) => t._id === id);
+    const entryToDelete = entries.find((e) => e._id === id);
     if (!entryToDelete) return;
 
     await deleteEntry(auth.token, id);
 
-    // 1️⃣ Update entries list
-    setEntries((prev) => prev.filter((t) => t._id !== id));
+    if (entryToDelete.entryType === "transfer") {
+      moveBalanceBetweenAccounts(
+        entryToDelete.toAccount!,
+        entryToDelete.fromAccount!,
+        Number(entryToDelete.value)
+      );
+    } else {
+      applyBalanceDelete(
+        entryToDelete.baseAccount!,
+        entryToDelete.entryType === "income"
+          ? Number(entryToDelete.value)
+          : -Number(entryToDelete.value)
+      );
+    }
 
-    applyBalanceDelete(
-      entryToDelete.accountId,
-      entryToDelete.entryType === "income"
-        ? Number(entryToDelete.value)
-        : -Number(entryToDelete.value)
-    );
+    setEntries((prev) => prev.filter((e) => e._id !== id));
   };
 
+  // --- EDIT ---
   const startEdit = (entry: Entry) => {
+    console.log("Editing entry:", entry);
     setEditingEntry(entry);
     setEditValue(entry.value || "");
-    setEditEntryType(
-      entry.entryType === "income" || entry.entryType === "expense"
-        ? entry.entryType
-        : "expense"
-    );
-    setEditDueDate(entry.dueDate ? entry.dueDate.split("T")[0] : "");
-    setEditNotes(entry.notes || "");
-    setEditAccountId(entry.accountId ?? null);
+    setEditEntryType(entry.entryType ?? "expense");
+    setEditDueDate(entry.dueDate?.split("T")[0] || "");
     setEditCategory(entry.category || "");
+    setEditNotes(entry.notes || "");
+    setEditAccountId(entry.baseAccount ?? null);
+    setEditFromAccountId(entry.fromAccount || "");
+    setEditToAccountId(entry.toAccount || "");
     setIsModalOpen(true);
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth?.token || !editingEntry) return;
-    const res = await updateEntry(auth.token, editingEntry._id, {
-      value: editValue,
-      entryType: editEntryType,
-      dueDate: editDueDate,
-      notes: editNotes,
-      accountId: editAccountId || undefined,
-      category: editCategory,
-    });
+
+    const payload: Partial<Entry> =
+      editEntryType === "transfer"
+        ? {
+            entryType: "transfer",
+            value: editValue,
+            fromAccountId: editFromAccountId,
+            toAccountId: editToAccountId,
+            notes: editNotes,
+            category: editCategory,
+            ...(editDueDate && { dueDate: editDueDate }),
+          }
+        : {
+            entryType: editEntryType as "income" | "expense",
+            value: editValue,
+            accountId: editAccountId!,
+            notes: editNotes,
+            category: editCategory,
+            ...(editDueDate && { dueDate: editDueDate }),
+          };
+
+    const res = await updateEntry(auth.token, editingEntry._id, payload);
 
     setEntries((prev) =>
-      prev.map((t) => (t._id === res.data._id ? res.data : t))
+      prev.map((e) => (e._id === res.data._id ? res.data : e))
     );
 
-    if (editAccountId !== editingEntry.accountId) {
-      const multiplier = editingEntry.entryType === "income" ? 1 : -1;
-      const amount = Number(editValue);
-
+    // Adjust balances
+    if (editingEntry.entryType === "transfer") {
       moveBalanceBetweenAccounts(
-        editingEntry.accountId!,
-        editAccountId!,
-        multiplier * amount
+        editingEntry.fromAccount!,
+        editingEntry.toAccount!,
+        -Number(editingEntry.value)
+      );
+      moveBalanceBetweenAccounts(
+        editFromAccountId,
+        editToAccountId,
+        Number(editValue)
       );
     } else {
-      // Same account, value or type changed
       const oldAmt =
         (editingEntry.entryType === "income" ? 1 : -1) *
         Number(editingEntry.value);
-
       const newAmt = (editEntryType === "income" ? 1 : -1) * Number(editValue);
-
       const diff = newAmt - oldAmt;
-
       applyBalanceChange(editAccountId!, diff);
     }
 
@@ -199,7 +253,7 @@ const Dashboard = () => {
     setIsModalOpen(false);
   };
 
-  // Client-side filtering/sorting
+  // --- Visible entries (filter/sort) ---
   const visible = entries
     .filter((entry) =>
       categoryFilter ? entry.category === categoryFilter : true
@@ -219,88 +273,76 @@ const Dashboard = () => {
     });
 
   return (
-    <Layout>
-
-      {/* --- Accounts --- */}
+    <>
       <AccountsContainer />
+      <ChartsSection entries={entries} />
 
-      {/* Filters */}
-      <div style={{ flex: 1 }}>
-        <FiltersBar
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          categoryFilter={categoryFilter}
-          setCategoryFilter={setCategoryFilter}
-        />
+      <FiltersBar
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+      />
+      <EntryList
+        entries={visible}
+        accounts={accounts}
+        onEdit={startEdit}
+        onDelete={handleDelete}
+      />
 
-        {/* Entry List */}
-        <EntryList
-          entries={visible}
-          accounts={accounts}
-          onEdit={startEdit}
-          onDelete={handleDelete}
-        />
-
-        {/* Pagination */}
-        <div className="flex justify-center gap-3 mt-6">
+      {/* Pagination */}
+      <div className="flex justify-center gap-3 mt-6">
+        <button onClick={() => setPage(page - 1)} disabled={page <= 1}>
+          Prev
+        </button>
+        {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
           <button
-            className="px-3 py-1 rounded bg-slate-100"
-            onClick={() => page > 1 && setPage(page - 1)}
-            disabled={page <= 1}
+            key={p}
+            className={p === page ? "bg-indigo-600 text-white" : ""}
+            onClick={() => setPage(p)}
           >
-            Prev
+            {p}
           </button>
-          {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              className={`px-3 py-1 rounded ${
-                p === page ? "bg-indigo-600 text-white" : "bg-slate-100"
-              }`}
-              onClick={() => setPage(p)}
-            >
-              {p}
-            </button>
-          ))}
-          <button
-            className="px-3 py-1 rounded bg-slate-100"
-            onClick={() => page < pages && setPage(page + 1)}
-            disabled={page >= pages}
-          >
-            Next
-          </button>
-        </div>
+        ))}
+        <button onClick={() => setPage(page + 1)} disabled={page >= pages}>
+          Next
+        </button>
       </div>
 
-      {/* --- Add Entry Modal --- */}
+      {/* Add Entry Modal */}
       <Modal
         isOpen={isAddEntryModalOpen}
         onClose={() => setIsAddEntryModalOpen(false)}
       >
-        <h2 className="text-xl font-semibold mb-3">Add New Entry</h2>
+        <h2 className="text-xl font-semibold mb-3 text-center">
+          Add New Entry
+        </h2>
         <EntryFormCreate
           value={value}
           setValue={setValue}
           entryType={entryType}
-          setEntryType={(v) => setEntryType(v as "income" | "expense")}
-          accountId={activeAccount || undefined} // <-- convert null to undefined
-          setAccountId={setActiveAccount} // <-- pass setter from context
+          setEntryType={setEntryType}
+          accountId={activeAccount || undefined}
+          fromAccountId={fromAccount}
+          toAccountId={toAccount}
+          setAccountId={setActiveAccount}
+          setFromAccountId={setFromAccount}
+          setToAccountId={setToAccount}
           dueDate={dueDate}
           setDueDate={setDueDate}
           notes={notes}
           setNotes={setNotes}
           category={category}
           setCategory={setCategory}
-          accounts={accounts} // <-- pass all accounts
-          onSubmit={(e) => {
-            handleCreate(e);
-            setIsAddEntryModalOpen(false);
-          }}
+          accounts={accounts}
+          onSubmit={handleCreate}
+          onCancel={() => setIsAddEntryModalOpen(false)}
         />
       </Modal>
 
-      {/* --- Edit Entry Modal --- */}
+      {/* Edit Entry Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <h2 className="text-xl font-semibold mb-3">Edit Entry</h2>
+        <h2 className="text-xl font-semibold mb-3 text-center">Edit Entry</h2>
         <EntryFormEdit
           editValue={editValue}
           setEditValue={setEditValue}
@@ -309,9 +351,13 @@ const Dashboard = () => {
           editDueDate={editDueDate}
           setEditDueDate={setEditDueDate}
           editNotes={editNotes}
-          setEditNotes={setEditNotes} // <-- new
+          setEditNotes={setEditNotes}
           editAccountId={editAccountId ?? undefined}
+          editFromAccountId={editFromAccountId}
+          editToAccountId={editToAccountId}
           setEditAccountId={setEditAccountId}
+          setEditFromAccountId={setEditFromAccountId}
+          setEditToAccountId={setEditToAccountId}
           editCategory={editCategory}
           setEditCategory={setEditCategory}
           accounts={accounts}
@@ -323,7 +369,7 @@ const Dashboard = () => {
       <FloatingAddButton onClick={() => setIsAddEntryModalOpen(true)}>
         +
       </FloatingAddButton>
-    </Layout>
+    </>
   );
 };
 

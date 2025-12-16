@@ -14,7 +14,7 @@ import { Card, Info } from "../../styles/EntryCard";
 
   export default function EntryCard({ entry, accounts, onEdit, onDelete }: Omit<Props, 'onToggle'>) {
     const [openMenu, setOpenMenu] = useState(false);
-    const accountName = accounts.find(acc => acc._id === entry.account)?.name;
+    const accountName = accounts.find(acc => acc._id === entry.baseAccount)?.name;
 
     useEffect(() => {
       const close = () => setOpenMenu(false);
@@ -30,7 +30,15 @@ import { Card, Info } from "../../styles/EntryCard";
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div
         className="bold"
-        style={{ color: entry.entryType === "income" ? "#16A34A" : "#DC2626" }}
+        style={{
+  color:
+    entry.entryType === "income"
+      ? "#16A34A"   // green
+      : entry.entryType === "expense"
+      ? "#DC2626"   // red
+      : "#2563EB"   // blue for transfer
+}}
+
       >
         ₹{entry.value}
       </div>

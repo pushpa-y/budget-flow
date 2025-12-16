@@ -8,7 +8,7 @@ export default function Settings() {
 
   const handleLogout = () => {
     auth?.logout();
-    navigate("/login");
+    navigate("/");
   };
 
   return (

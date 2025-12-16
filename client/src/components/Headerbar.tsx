@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { FiMenu } from "react-icons/fi";
 import { useSidebar } from "../context/SidebarContext";
+import { useLocation } from "react-router-dom";
 
 const Header = styled.header`
   height: 64px;
@@ -16,6 +17,13 @@ const Title = styled.h3`
 
 export default function HeaderBar() {
   const { collapsed, setCollapsed } = useSidebar();
+  const location = useLocation();
+
+  const getTitle = () => {
+  if (location.pathname.startsWith("/accounts")) return "Accounts";
+  if (location.pathname.startsWith("/dashboard")) return "Overview";
+  return "Overview"; // fallback
+};
 
   return (
     <Header>
@@ -30,7 +38,7 @@ export default function HeaderBar() {
       >
         <FiMenu size={18} />
       </button>
-      <Title>Overview</Title>
+      <Title>{getTitle()}</Title>
     </Header>
   );
 }
