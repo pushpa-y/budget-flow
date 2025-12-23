@@ -1,6 +1,7 @@
 import React from "react";
 import type { Account } from "../../services/accounts";
 import { Form } from "../../styles/EntryFormEdit";
+import { CATEGORIES } from "../../constants/categories";
 
 type Props = {
   value: string;
@@ -49,38 +50,29 @@ export default function EntryFormCreate({
     <Form onSubmit={onSubmit}>
       {/* Entry Type Buttons */}
       <div className="entry-type-buttons">
-        <button
-          type="button"
-          className={`income ${entryType === "income" ? "active" : ""}`}
-          onClick={() => setEntryType("income")}
-        >
-          Income
-        </button>
-
-        <button
-          type="button"
-          className={`expense ${entryType === "expense" ? "active" : ""}`}
-          onClick={() => setEntryType("expense")}
-        >
-          Expense
-        </button>
-
-        <button
-          type="button"
-          className={`transfer ${entryType === "transfer" ? "active" : ""}`}
-          onClick={() => setEntryType("transfer")}
-        >
-          Transfer
-        </button>
+        {["income", "expense", "transfer"].map((type) => (
+          <button
+            key={type}
+            type="button"
+            className={`${type} ${entryType === type ? "active" : ""}`}
+            onClick={() =>
+              setEntryType(type as "income" | "expense" | "transfer")
+            }
+          >
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </button>
+        ))}
       </div>
 
+      {/* Amount */}
       <input
-          type="text"
-          placeholder="Amount"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
+        type="text"
+        placeholder="Amount"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
 
+      {/* Accounts */}
       {entryType === "transfer" ? (
         <>
           <select
@@ -94,7 +86,6 @@ export default function EntryFormCreate({
               </option>
             ))}
           </select>
-
           <select
             value={toAccountId}
             onChange={(e) => setToAccountId(e.target.value)}
@@ -121,36 +112,44 @@ export default function EntryFormCreate({
         </select>
       )}
 
+      {/* Date & Notes */}
       <div className="row">
         <input
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
         />
-
         <input
           type="text"
           placeholder="Notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
-</div>
-        {entryType !== "transfer" && (
-          <select
-            required
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">Category</option>
-            <option value="work">Work</option>
-            <option value="personal">Personal</option>
-            <option value="shopping">Shopping</option>
-            <option value="finance">Finance</option>
-            <option value="health">Health</option>
-          </select>
-        )}
-      
+      </div>
 
+      {/* Category */}
+      {entryType !== "transfer" && (
+        <select
+          required
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="">Category</option>
+          {CATEGORIES.filter((c) => !c.parentId).map((main) => (
+            <optgroup key={main.id} label={`${main.icon || ""} ${main.name}`}>
+              {CATEGORIES.filter((sub) => sub.parentId === main.id).map(
+                (sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.icon || ""} {sub.name}
+                  </option>
+                )
+              )}
+            </optgroup>
+          ))}
+        </select>
+      )}
+
+      {/* Actions */}
       <div className="actions mt-4">
         <button type="button" onClick={onCancel} className="secondary">
           Cancel

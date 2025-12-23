@@ -1,11 +1,31 @@
 import styled from "styled-components";
+import { motion } from "framer-motion";
 
-export const AccountsCard = styled.div`
-  background: ${(p) => p.theme.cardBg || "white"};
-  border-radius: 14px;
-  padding: 18px 20px;
+export const BaseCard = styled(motion.div)<{
+  $clickable?: boolean;
+  $padding?: string;
+  $radius?: string;
+  $bg?: string;
+}>`
+  background: ${({ $bg, theme }) => $bg || theme.cardBg || "white"};
+  padding: ${({ $padding }) => $padding || "16px"};
+  border-radius: ${({ $radius }) => $radius || "12px"};
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: block;
   margin-bottom: 20px;
+  cursor: ${({ $clickable }) => ($clickable ? "pointer" : "default")};
+
+  transition: 0.2s ease;
+
+  &:hover {
+    transform: ${({ $clickable }) =>
+      $clickable ? "translateY(-1px)" : "none"};
+  }
+`;
+
+export const AccountsCard = styled(BaseCard)`
+  padding: 18px 20px;
+  border-radius: 14px;
 `;
 
 export const AccountsWrapper = styled.div`

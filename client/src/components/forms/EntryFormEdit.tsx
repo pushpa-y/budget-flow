@@ -1,6 +1,7 @@
 import React from "react";
-import { Form } from "../../styles/EntryFormEdit";
 import type { Account } from "../../services/accounts";
+import { Form } from "../../styles/EntryFormEdit";
+import { CATEGORIES } from "../../constants/categories";
 
 type Props = {
   editValue: string;
@@ -45,37 +46,22 @@ export default function EntryFormEdit({
   onSubmit,
   onCancel,
 }: Props) {
-  console.log({
-  editFromAccountId:editFromAccountId,
-  editToAccountId: editToAccountId})
   return (
     <Form onSubmit={onSubmit}>
-
       {/* Entry Type Buttons */}
       <div className="entry-type-buttons">
-        <button
-          type="button"
-          className={`income ${editEntryType === "income" ? "active" : ""}`}
-          onClick={() => setEditEntryType("income")}
-        >
-          Income
-        </button>
-
-        <button
-          type="button"
-          className={`expense ${editEntryType === "expense" ? "active" : ""}`}
-          onClick={() => setEditEntryType("expense")}
-        >
-          Expense
-        </button>
-
-        <button
-          type="button"
-          className={`transfer ${editEntryType === "transfer" ? "active" : ""}`}
-          onClick={() => setEditEntryType("transfer")}
-        >
-          Transfer
-        </button>
+        {["income", "expense", "transfer"].map((type) => (
+          <button
+            key={type}
+            type="button"
+            className={`${type} ${editEntryType === type ? "active" : ""}`}
+            onClick={() =>
+              setEditEntryType(type as "income" | "expense" | "transfer")
+            }
+          >
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </button>
+        ))}
       </div>
 
       {/* Amount */}
@@ -86,79 +72,83 @@ export default function EntryFormEdit({
         placeholder="Amount"
       />
 
-        {/* Accounts */}
-        {editEntryType === "transfer" ? (
-          <>
-            <select
-              value={editFromAccountId}
-              onChange={(e) => setEditFromAccountId(e.target.value)}
-            >
-              <option value="">From Account</option>
-              {accounts.map((a) => (
-                <option key={a._id} value={a._id}>
-                  {a.name} — ₹{a.balance}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={editToAccountId}
-              onChange={(e) => setEditToAccountId(e.target.value)}
-            >
-              <option value="">To Account</option>
-              {accounts.map((a) => (
-                <option key={a._id} value={a._id}>
-                  {a.name} — ₹{a.balance}
-                </option>
-              ))}
-            </select>
-          </>
-        ) : (
+      {/* Accounts */}
+      {editEntryType === "transfer" ? (
+        <>
           <select
-            value={editAccountId}
-            onChange={(e) => setEditAccountId(e.target.value)}
-            className="border p-2 rounded w-full"
+            value={editFromAccountId}
+            onChange={(e) => setEditFromAccountId(e.target.value)}
           >
-            <option value="">Select account</option>
+            <option value="">From Account</option>
             {accounts.map((a) => (
               <option key={a._id} value={a._id}>
                 {a.name} — ₹{a.balance}
               </option>
             ))}
           </select>
-        )}
+          
+          <select
+            value={editToAccountId}
+            onChange={(e) => setEditToAccountId(e.target.value)}
+          >
+            <option value="">To Account</option>
+            {accounts.map((a) => (
+              <option key={a._id} value={a._id}>
+                {a.name} — ₹{a.balance}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : (
+        <select
+          value={editAccountId}
+          onChange={(e) => setEditAccountId(e.target.value)}
+        >
+          <option value="">Select account</option>
+          {accounts.map((a) => (
+            <option key={a._id} value={a._id}>
+              {a.name} — ₹{a.balance}
+            </option>
+          ))}
+        </select>
+      )}
 
-        {/* Due Date */}
-         <div className="row">
+      {/* Date & Notes */}
+      <div className="row">
         <input
           type="date"
           value={editDueDate}
           onChange={(e) => setEditDueDate(e.target.value)}
         />
-
-        {/* Notes */}
         <input
           type="text"
+          placeholder="Notes"
           value={editNotes}
           onChange={(e) => setEditNotes(e.target.value)}
-          placeholder="Notes"
         />
-        </div>
+      </div>
 
-        {/* Category */}
-        {editEntryType !== "transfer" && (
-          <select
-            value={editCategory}
-            onChange={(e) => setEditCategory(e.target.value)}
-          >
-            <option value="">Category</option>
-            <option value="work">Work</option>
-            <option value="personal">Personal</option>
-            <option value="shopping">Shopping</option>
-            <option value="finance">Finance</option>
-            <option value="health">Health</option>
-          </select>
-        )}
+      {/* Category */}
+      {editEntryType !== "transfer" && (
+        <select
+          required
+          value={editCategory}
+          onChange={(e) => setEditCategory(e.target.value)}
+        >
+          <option value="">Category</option>
+          {CATEGORIES.filter((c) => !c.parentId).map((main) => (
+            <optgroup key={main.id} label={`${main.icon || ""} ${main.name}`}>
+              {CATEGORIES.filter((sub) => sub.parentId === main.id).map(
+                (sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.icon || ""} {sub.name}
+                  </option>
+                )
+              )}
+            </optgroup>
+          ))}
+        </select>
+      )}
 
       {/* Actions */}
       <div className="actions mt-4">

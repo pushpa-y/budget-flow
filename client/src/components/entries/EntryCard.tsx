@@ -1,108 +1,123 @@
+import { useState, useEffect } from "react";
+import type { Entry as T } from "../../services/Entry";
+import type { Account } from "../../services/accounts";
+import {
+  Card,
+  Info,
+  Row,
+  LeftColumn,
+  RightColumn,
+  AmountDate,
+  CategoryRow,
+  MenuButtonWrapper,
+} from "../../styles/EntryCard";
+import { CATEGORY_MAP } from "../../constants/categories";
 
-  import type { Entry as T } from "../../services/Entry";
-  import type { Account } from "../../services/accounts";
-  import { useEffect, useState } from "react";
-import { Card, Info } from "../../styles/EntryCard";
+type Props = {
+  entry: T;
+  accounts: Account[];
+  onEdit: (t: T) => void;
+  onDelete: (id: string) => void;
+};
 
-  type Props = {
-    entry: T;
-    accounts: Account[];
-    onEdit: (t: T) => void;
-    onDelete: (id: string) => void;
-    onToggle: (t: T) => void;
-  };
+const formatDate = (dateStr?: string) => {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
+};
 
-  export default function EntryCard({ entry, accounts, onEdit, onDelete }: Omit<Props, 'onToggle'>) {
-    const [openMenu, setOpenMenu] = useState(false);
-    const accountName = accounts.find(acc => acc._id === entry.baseAccount)?.name;
+export default function EntryCard({
+  entry,
+  accounts,
+  onEdit,
+  onDelete,
+}: Props) {
+  const [openMenu, setOpenMenu] = useState(false);
 
-    useEffect(() => {
-      const close = () => setOpenMenu(false);
-      window.addEventListener("click", close);
-      return () => window.removeEventListener("click", close);
-    }, []);
+  // --- Determine account name ---
+  const accountName = accounts.find((acc) => acc._id === entry.account)?.name;
 
-    return (
-      <Card className="glass" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} whileHover={{ y: -6, scale: 1.01 }} transition={{ duration: 0.25 }}>
-        <Info>
+  // --- Category info ---
+  const category = entry.category
+    ? CATEGORY_MAP[entry.category as keyof typeof CATEGORY_MAP]
+    : undefined;
+  const categoryLabel = category?.label ?? "Other";
+  const categoryEmoji = category?.emoji ?? "📦";
 
-    {/* TOP ROW → amount + 3 dots */}
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div
-        className="bold"
-        style={{
-  color:
-    entry.entryType === "income"
-      ? "#16A34A"   // green
-      : entry.entryType === "expense"
-      ? "#DC2626"   // red
-      : "#2563EB"   // blue for transfer
-}}
+  useEffect(() => {
+    const close = () => setOpenMenu(false);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, []);
 
-      >
-        ₹{entry.value}
-      </div>
+  return (
+    <Card
+      className="glass"
+      initial={{ y: 6, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      whileHover={{ y: -6, scale: 1.01 }}
+      transition={{ duration: 0.25 }}
+    >
+      <Info>
+        <Row>
+          {/* LEFT SIDE */}
+          <LeftColumn>
+            <CategoryRow>
+              <span>{categoryEmoji}</span>
+              <span className="bold">{categoryLabel}</span>
+            </CategoryRow>
+            {accountName && <div className="muted">Account: {accountName}</div>}
+            {entry.notes && <div className="muted">{entry.notes}</div>}
+          </LeftColumn>
 
-      <div style={{ position: "relative" }}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpenMenu(!openMenu);
-          }}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "20px",
-            padding: "0 4px",
-            lineHeight: "1",
-          }}
-        >
-          ⋮
-        </button>
+          {/* RIGHT SIDE */}
+          <RightColumn>
+            <AmountDate>
+              <div
+                className={`amount ${
+                  entry.entryType === "income"
+                    ? "income"
+                    : entry.entryType === "expense"
+                    ? "expense"
+                    : "other"
+                }`}
+              >
+                ₹{entry.value}
+              </div>
+              <div className="muted">{formatDate(entry.dueDate)}</div>
+            </AmountDate>
 
-        {openMenu && (
-          <div
-            style={{
-              position: "absolute",
-               top: "120%",
-              right: 0,
-              background: "white",
-              boxShadow: "0px 2px 8px rgba(0,0,0,0.2)",
-              borderRadius: 8,
-              padding: "8px 0",
-              zIndex: 100,
-              minWidth: "120px",
-            }}
-          >
-            <div
-              onClick={() => onEdit(entry)}
-              style={{ padding: "8px 12px", cursor: "pointer" }}
-            >
-              Edit
-            </div>
-            <div
-              onClick={(e) => {
-                e.stopPropagation();           // don't let outer click handlers run
-                setOpenMenu(false);            // close the menu immediately
-                console.log("EntryCard: deleting", entry._id);
-                onDelete(entry._id);            // call parent handler
-              }}
-              style={{ padding: "8px 12px", cursor: "pointer", color: "red" }}
-            >
-              Delete
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+            <MenuButtonWrapper>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenu(!openMenu);
+                }}
+              >
+                ⋮
+              </button>
 
-    {/* OTHER INFO */}
-    {accountName && <div className="muted">Account: {accountName}</div>}
-    {entry.notes && <div className="muted">Notes: {entry.notes}</div>}
-
-  </Info>
-      </Card>
-    );
-  }
-
+              {openMenu && (
+                <div className="menu">
+                  <div onClick={() => onEdit(entry)}>Edit</div>
+                  <div
+                    className="delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenu(false);
+                      onDelete(entry._id);
+                    }}
+                  >
+                    Delete
+                  </div>
+                </div>
+              )}
+            </MenuButtonWrapper>
+          </RightColumn>
+        </Row>
+      </Info>
+    </Card>
+  );
+}

@@ -71,7 +71,7 @@ export default function Sidebar() {
           <FiLayers size={18} />
           <span className="label">Accounts</span>
         </NavItem>
-        <NavItem to="" $collapsed={collapsed}>
+        <NavItem to="/analytics" $collapsed={collapsed}>
           <FiBarChart2 size={18} />
           <span className="label">Analytics</span>
         </NavItem>

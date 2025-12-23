@@ -6,9 +6,9 @@ export interface IEntry extends Document {
   dueDate?: Date;
   notes?: string;
   category?: string;
-  account?: mongoose.Types.ObjectId; // income/expense
-  fromAccount?: mongoose.Types.ObjectId; // transfer
-  toAccount?: mongoose.Types.ObjectId; // transfer
+  account?: mongoose.Types.ObjectId;
+  fromAccount?: mongoose.Types.ObjectId;
+  toAccount?: mongoose.Types.ObjectId;
   user: mongoose.Types.ObjectId;
 }
 
@@ -26,7 +26,10 @@ const EntrySchema = new Schema<IEntry>(
 
     notes: { type: String, default: "" },
 
-    category: { type: String, default: "" },
+    category: {
+      type: String,
+      default: "other",
+    },
 
     // REQUIRED only for income & expense
     account: {
@@ -54,9 +57,13 @@ const EntrySchema = new Schema<IEntry>(
       },
     },
 
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  { timestamps: true }
 );
 
 /* VIRTUAL ACCOUNT */

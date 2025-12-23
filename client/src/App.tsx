@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import { SidebarProvider } from "./context/SidebarContext";
 import AccountsPage from "./pages/AccountsPage";
+import Analytics from "./pages/Analytics";
 import AppLayout from "./layouts/AppLayout";
 
 createRoot(document.getElementById("root")!).render(
@@ -26,6 +27,7 @@ createRoot(document.getElementById("root")!).render(
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/accounts" element={<AccountsPage />} />
+                  <Route path="/analytics" element={<Analytics />} />
                   {/* Add more: /analytics, /settings, etc */}
                 </Route>
               </Routes>

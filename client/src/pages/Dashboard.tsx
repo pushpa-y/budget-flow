@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/Authcontext";
 import { useAccounts } from "../context/AccountsContext";
+
 import {
   getEntries,
   createEntry,
@@ -46,6 +47,8 @@ const Dashboard = () => {
     new Date().toISOString().split("T")[0]
   );
   const [category, setCategory] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+    
   const [notes, setNotes] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
@@ -53,7 +56,6 @@ const Dashboard = () => {
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
-  const [editCategory, setEditCategory] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [editAccountId, setEditAccountId] = useState<string | null>(null);
   const [editFromAccountId, setEditFromAccountId] = useState<string>("");
@@ -210,7 +212,6 @@ const Dashboard = () => {
             fromAccountId: editFromAccountId,
             toAccountId: editToAccountId,
             notes: editNotes,
-            category: editCategory,
             ...(editDueDate && { dueDate: editDueDate }),
           }
         : {

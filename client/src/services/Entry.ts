@@ -4,6 +4,7 @@ export interface Entry {
   _id: string;
   value?: string;
   entryType?: "income" | "expense" | "transfer";
+  category?: string;
   // READ (from backend)
   account?: string; 
   fromAccount?: string;
@@ -17,7 +18,6 @@ export interface Entry {
   completed: boolean;
   dueDate?: string;
   notes?: string;
-  category?: string;
 }
 
 // All API calls include the token
