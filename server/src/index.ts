@@ -22,7 +22,6 @@ app.use(express.json());
 // Auth Routes
 app.use("/auth", authRoutes);
 app.use("/entries", entryRoutes);
-
 app.use("/accounts", accountRoutes);
 
 // Protected Route Test

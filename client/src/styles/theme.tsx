@@ -10,6 +10,7 @@ export const lightTheme: DefaultTheme = {
   accent: "#4f46e5",
   glassBorder: "rgba(255,255,255,0.6)",
   cardShadow: "0 10px 30px rgba(15,23,42,0.06)",
+  cardBg: "rgba(255,255,255,0.8)",
 };
 
 export const darkTheme: DefaultTheme = {
@@ -21,6 +22,7 @@ export const darkTheme: DefaultTheme = {
   accent: "#7c3aed",
   glassBorder: "rgba(255,255,255,0.06)",
   cardShadow: "0 10px 30px rgba(2,6,23,0.6)",
+  cardBg: "rgba(20,25,35,0.6)",
 };
 
 export const GlobalStyle = createGlobalStyle<{theme:any}>`
