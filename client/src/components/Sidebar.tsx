@@ -46,7 +46,7 @@ export default function Sidebar() {
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <BrandRow $collapsed={collapsed}>
           <div className="brand" />
-          <div className="brandLabel">Budget Flow</div>
+          <div className="brandLabel">SyncMate</div>
         </BrandRow>
 
         <NavItem

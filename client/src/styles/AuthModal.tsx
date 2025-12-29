@@ -1,10 +1,11 @@
 import styled from "styled-components";
-import onboarding_background from "../assets/onboarding_background.png";
-import Authbg from "../assets/Authbg.png"
+import formbg from "../assets/formbg.png";
+
 export const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  background-image: url(${Authbg});
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,77 +13,102 @@ export const Overlay = styled.div`
 `;
 
 export const Modal = styled.div`
-  position: relative;
-  width: 600px;
-  height: 440px;
+ position: relative;
+  width: 760px;
+  height: 460px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   display: flex;
   overflow: hidden;
 `;
 
-
-export const Section = styled.div`
+export const ImageSection = styled.div`
   flex: 1;
-  padding: 100px 32px;
+  flexshrink: 0;
+  background-image: url(${formbg});
+  background-size: cover;
+  background-position: center;
 `;
-export const BrandWrapper = styled.div`
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
+
+export const FormSection = styled.div`
+  flex: 1;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
+
 export const BrandTitle = styled.h1`
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  color: #111827; /* near black */
+  margin-bottom: 6px;
 `;
 
 export const BrandSubtitle = styled.p`
-  font-size: 13px;
-  color: #6b7280; /* gray */
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 24px;
 `;
+
 export const Title = styled.h2`
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
+  font-size: 18px;
   margin-bottom: 16px;
 `;
 
 export const Input = styled.input`
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   margin-bottom: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #d1d5db;
   font-size: 14px;
 
   &:focus {
     outline: none;
-    border-color: #2563eb;
+    border-color: #6366f1;
   }
 `;
 
-export const Button = styled.button<{ variant?: "login" | "register" }>`
+export const Button = styled.button`
   width: 100%;
   padding: 10px;
-  border-radius: 6px;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
+  border-radius: 8px;
   border: none;
-
-  background: ${({ variant }) =>
-    variant === "register" ? "#16a34a" : "#2563eb"};
+  font-weight: 600;
+  background: #6366f1;
+  color: white;
+  cursor: pointer;
+  margin-top: 8px;
 
   &:hover {
     opacity: 0.9;
   }
 `;
 
-export const Text = styled.p`
+export const SwitchText = styled.p`
+  margin-top: 16px;
   font-size: 13px;
   color: #6b7280;
-  margin-top: 10px;
+  text-align: center;
+
+  span {
+    color: #6366f1;
+    font-weight: 600;
+    cursor: pointer;
+  }
+`;
+export const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  font-weight: 500;
+  color: black;
+  cursor: pointer;
+
+  &:hover {
+    color: #111827;
+  }
 `;
